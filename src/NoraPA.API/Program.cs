@@ -30,11 +30,17 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // Configure Database
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? "Host=localhost;Port=5432;Database=nora;Username=nora;Password=nora_dev_password";
 
 builder.Services.AddDbContext<NoraDbContext>(options =>
-    options.UseNpgsql(connectionString, o => o.UseVector()));
+{
+    options.UseNpgsql(connectionString, o =>
+    {
+        o.UseVector();
+        o.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorCodesToAdd: null);
+    });
+}, ServiceLifetime.Scoped, ServiceLifetime.Scoped);
 
 // Configure Redis
 var redisConnection = builder.Configuration.GetConnectionString("Redis") 
