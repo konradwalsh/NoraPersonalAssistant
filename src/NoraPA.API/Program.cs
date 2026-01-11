@@ -29,18 +29,27 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Configure Database
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Host=localhost;Port=5432;Database=nora;Username=nora;Password=nora_dev_password";
+// Configure Database (optional - app can start without it)
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var databaseEnabled = !string.IsNullOrEmpty(connectionString);
 
-builder.Services.AddDbContext<NoraDbContext>(options =>
+if (databaseEnabled)
 {
-    options.UseNpgsql(connectionString, o =>
+    builder.Services.AddDbContext<NoraDbContext>(options =>
     {
-        o.UseVector();
-        o.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorCodesToAdd: null);
-    });
-}, ServiceLifetime.Scoped, ServiceLifetime.Scoped);
+        options.UseNpgsql(connectionString!, o =>
+        {
+            o.UseVector();
+            o.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorCodesToAdd: null);
+        });
+    }, ServiceLifetime.Scoped, ServiceLifetime.Scoped);
+}
+else
+{
+    // Add a dummy DbContext for when database is not configured
+    builder.Services.AddDbContext<NoraDbContext>(options =>
+        options.UseInMemoryDatabase("NoraDev"));
+}
 
 // Configure Redis
 var redisConnection = builder.Configuration.GetConnectionString("Redis") 
