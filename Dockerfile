@@ -31,6 +31,11 @@ EXPOSE 5000
 # Set environment variables
 ENV ASPNETCORE_URLS=http://+:5000
 ENV ASPNETCORE_ENVIRONMENT=Production
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
 
-# Run the application
-ENTRYPOINT ["dotnet", "NoraPA.API.dll"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:5000/health || exit 1
+
+# Run the application with verbose logging
+ENTRYPOINT ["dotnet", "NoraPA.API.dll", "--urls", "http://0.0.0.0:5000"]
