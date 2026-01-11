@@ -6,112 +6,60 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration)
-    .Enrich.FromLogContext()
     .WriteTo.Console()
-    .WriteTo.File("logs/nora-.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
 builder.Host.UseSerilog();
 
-// Add services to the container
+// Add services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { 
         Title = "Nora Personal Assistant API", 
-        Version = "v1",
-        Description = "Intelligent life management system that extracts obligations, deadlines, and risks from digital communications"
+        Version = "v1"
     });
 });
 
-// Configure Database (optional - app can start without it)
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-var databaseEnabled = !string.IsNullOrEmpty(connectionString);
-
-if (databaseEnabled)
-{
-    builder.Services.AddDbContext<NoraDbContext>(options =>
-    {
-        options.UseNpgsql(connectionString!, o =>
-        {
-            o.UseVector();
-            o.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorCodesToAdd: null);
-        });
-    }, ServiceLifetime.Scoped, ServiceLifetime.Scoped);
-}
-else
-{
-    // Add a dummy DbContext for when database is not configured
-    builder.Services.AddDbContext<NoraDbContext>(options =>
-        options.UseInMemoryDatabase("NoraDev"));
-}
-
-// Configure Redis (optional)
-var redisConnection = builder.Configuration.GetConnectionString("Redis");
-if (!string.IsNullOrEmpty(redisConnection))
-{
-    try
-    {
-        builder.Services.AddStackExchangeRedisCache(options =>
-        {
-            options.Configuration = redisConnection;
-        });
-    }
-    catch (Exception ex)
-    {
-        Log.Warning(ex, "Redis configuration failed, continuing without caching");
-    }
-}
-
-// Configure SignalR
-builder.Services.AddSignalR();
-
-// TODO: Add Hangfire when database is properly configured
-// builder.Services.AddHangfire(config => config
-//     .UsePostgreSqlStorage(connectionString));
-// builder.Services.AddHangfireServer();
+// Configure Database (InMemory for now)
+builder.Services.AddDbContext<NoraDbContext>(options =>
+    options.UseInMemoryDatabase("NoraDev"));
 
 // Configure CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+              .AllowAnyMethod();
     });
 });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Configure middleware
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseSerilogRequestLogging();
-
-app.UseCors("AllowFrontend");
-
+app.UseCors("AllowAll");
 app.UseAuthorization();
-
 app.MapControllers();
 
-// TODO: Add Hangfire dashboard when database is configured
-// app.MapHangfireDashboard("/hangfire");
-
 // Health check endpoint
-app.MapGet("/health", () => Results.Ok(new 
-{ 
-    status = "healthy", 
-    timestamp = DateTime.UtcNow,
-    version = "1.0.0"
-}));
+app.MapGet("/health", () => 
+{
+    Log.Information("Health check called");
+    return Results.Ok(new 
+    { 
+        status = "healthy", 
+        timestamp = DateTime.UtcNow,
+        version = "1.0.0",
+        database = "InMemory"
+    });
+});
 
 // Welcome endpoint
 app.MapGet("/", () => Results.Ok(new
@@ -123,23 +71,24 @@ app.MapGet("/", () => Results.Ok(new
     {
         health = "/health",
         swagger = "/swagger",
-        hangfire = "/hangfire",
         api = "/api"
     }
 }));
 
 try
 {
-    Log.Information("Starting Nora Personal Assistant API");
+    Log.Information("Starting Nora Personal Assistant API on port 5000");
+    Log.Information("Environment: {Environment}", app.Environment.EnvironmentName);
+    Log.Information("URLs: {URLs}", builder.Configuration["ASPNETCORE_URLS"] ?? "http://+:5000");
+    
     app.Run();
 }
 catch (Exception ex)
 {
     Log.Fatal(ex, "Application terminated unexpectedly");
+    throw;
 }
 finally
 {
     Log.CloseAndFlush();
 }
-
-// TODO: Add Hangfire authorization filter when Hangfire is re-enabled
