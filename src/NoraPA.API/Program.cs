@@ -1,10 +1,19 @@
 // Absolute minimal .NET 9 web app
-var builder = WebApplication.CreateBuilder(args);
+Console.WriteLine("========================================");
+Console.WriteLine("NORA PA API STARTING");
+Console.WriteLine("========================================");
 
-Console.WriteLine("========================================");
-Console.WriteLine("NORA PA API - MINIMAL VERSION");
-Console.WriteLine("========================================");
+// Get port from environment (Railway uses PORT variable)
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+var urls = $"http://0.0.0.0:{port}";
+
 Console.WriteLine($"Time: {DateTime.UtcNow}");
+Console.WriteLine($"Port from env: {port}");
+Console.WriteLine($"URLs: {urls}");
+
+var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls(urls);
+
 Console.WriteLine($"Environment: {builder.Environment.EnvironmentName}");
 Console.WriteLine($"ContentRoot: {builder.Environment.ContentRootPath}");
 Console.WriteLine("Building app...");
@@ -26,9 +35,21 @@ app.MapGet("/health", () =>
 });
 
 Console.WriteLine("Endpoints configured.");
-Console.WriteLine($"Starting server on: {Environment.GetEnvironmentVariable("ASPNETCORE_URLS") ?? "http://+:5000"}");
+Console.WriteLine($"Starting server on: {urls}");
 Console.WriteLine("========================================");
 
-app.Run();
-
-Console.WriteLine("App stopped.");
+try
+{
+    app.Run();
+    Console.WriteLine("App stopped normally.");
+}
+catch (Exception ex)
+{
+    Console.WriteLine("========================================");
+    Console.WriteLine("FATAL ERROR!");
+    Console.WriteLine($"Exception: {ex.GetType().Name}");
+    Console.WriteLine($"Message: {ex.Message}");
+    Console.WriteLine($"Stack: {ex.StackTrace}");
+    Console.WriteLine("========================================");
+    throw;
+}
