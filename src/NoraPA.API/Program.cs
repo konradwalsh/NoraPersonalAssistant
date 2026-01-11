@@ -1,6 +1,3 @@
-using Hangfire;
-using Hangfire.Dashboard;
-using Hangfire.PostgreSql;
 using Microsoft.EntityFrameworkCore;
 using NoraPA.Infrastructure.Data;
 using Serilog;
@@ -68,20 +65,13 @@ if (!string.IsNullOrEmpty(redisConnection))
     }
 }
 
-// Configure Hangfire (only if database is available)
-if (databaseEnabled)
-{
-    builder.Services.AddHangfire(config => config
-        .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-        .UseSimpleAssemblyNameTypeSerializer()
-        .UseRecommendedSerializerSettings()
-        .UsePostgreSqlStorage(c => c.UseNpgsqlConnection(connectionString!)));
-
-    builder.Services.AddHangfireServer();
-}
-
 // Configure SignalR
 builder.Services.AddSignalR();
+
+// TODO: Add Hangfire when database is properly configured
+// builder.Services.AddHangfire(config => config
+//     .UsePostgreSqlStorage(connectionString));
+// builder.Services.AddHangfireServer();
 
 // Configure CORS
 builder.Services.AddCors(options =>
@@ -112,14 +102,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Hangfire Dashboard (only if enabled)
-if (databaseEnabled)
-{
-    app.MapHangfireDashboard("/hangfire", new DashboardOptions
-    {
-        Authorization = new[] { new HangfireAuthorizationFilter() }
-    });
-}
+// TODO: Add Hangfire dashboard when database is configured
+// app.MapHangfireDashboard("/hangfire");
 
 // Health check endpoint
 app.MapGet("/health", () => Results.Ok(new 
@@ -158,8 +142,4 @@ finally
     Log.CloseAndFlush();
 }
 
-// Hangfire authorization filter (allow all in development)
-public class HangfireAuthorizationFilter : IDashboardAuthorizationFilter
-{
-    public bool Authorize(DashboardContext context) => true; // TODO: Add proper authorization
-}
+// TODO: Add Hangfire authorization filter when Hangfire is re-enabled
