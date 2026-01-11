@@ -59,14 +59,17 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.Configuration = redisConnection;
 });
 
-// Configure Hangfire
-builder.Services.AddHangfire(config => config
-    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-    .UseSimpleAssemblyNameTypeSerializer()
-    .UseRecommendedSerializerSettings()
-    .UsePostgreSqlStorage(c => c.UseNpgsqlConnection(connectionString)));
+// Configure Hangfire (only if database is available)
+if (databaseEnabled)
+{
+    builder.Services.AddHangfire(config => config
+        .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+        .UseSimpleAssemblyNameTypeSerializer()
+        .UseRecommendedSerializerSettings()
+        .UsePostgreSqlStorage(c => c.UseNpgsqlConnection(connectionString!)));
 
-builder.Services.AddHangfireServer();
+    builder.Services.AddHangfireServer();
+}
 
 // Configure SignalR
 builder.Services.AddSignalR();
@@ -100,11 +103,14 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Hangfire Dashboard
-app.MapHangfireDashboard("/hangfire", new DashboardOptions
+// Hangfire Dashboard (only if enabled)
+if (databaseEnabled)
 {
-    Authorization = new[] { new HangfireAuthorizationFilter() }
-});
+    app.MapHangfireDashboard("/hangfire", new DashboardOptions
+    {
+        Authorization = new[] { new HangfireAuthorizationFilter() }
+    });
+}
 
 // Health check endpoint
 app.MapGet("/health", () => Results.Ok(new 
