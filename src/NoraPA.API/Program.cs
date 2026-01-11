@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 // Nora Personal Assistant API
 Console.WriteLine("========================================");
 Console.WriteLine("NORA PA API STARTING");
