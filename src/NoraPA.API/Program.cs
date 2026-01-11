@@ -51,13 +51,22 @@ else
         options.UseInMemoryDatabase("NoraDev"));
 }
 
-// Configure Redis
-var redisConnection = builder.Configuration.GetConnectionString("Redis") 
-    ?? "localhost:6379";
-builder.Services.AddStackExchangeRedisCache(options =>
+// Configure Redis (optional)
+var redisConnection = builder.Configuration.GetConnectionString("Redis");
+if (!string.IsNullOrEmpty(redisConnection))
 {
-    options.Configuration = redisConnection;
-});
+    try
+    {
+        builder.Services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisConnection;
+        });
+    }
+    catch (Exception ex)
+    {
+        Log.Warning(ex, "Redis configuration failed, continuing without caching");
+    }
+}
 
 // Configure Hangfire (only if database is available)
 if (databaseEnabled)
