@@ -2,30 +2,35 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Copy solution and project files
+# Copy solution and all project files
 COPY NoraPA.sln ./
 COPY src/NoraPA.Core/NoraPA.Core.csproj ./src/NoraPA.Core/
+COPY src/NoraPA.Infrastructure/NoraPA.Infrastructure.csproj ./src/NoraPA.Infrastructure/
+COPY src/NoraPA.API/NoraPA.API.csproj ./src/NoraPA.API/
 
 # Restore dependencies
 RUN dotnet restore
 
-# Copy source code
+# Copy all source code
 COPY src/ ./src/
 
 # Build the project
 RUN dotnet build -c Release --no-restore
 
-# Publish stage (for when API project is added)
-# FROM build AS publish
-# RUN dotnet publish src/NoraPA.API/NoraPA.API.csproj -c Release -o /app/publish --no-restore
+# Publish the API
+RUN dotnet publish src/NoraPA.API/NoraPA.API.csproj -c Release -o /app/publish --no-restore
 
-# Runtime stage (for when API project is added)
-# FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
-# WORKDIR /app
-# COPY --from=publish /app/publish .
-# EXPOSE 5000
-# ENTRYPOINT ["dotnet", "NoraPA.API.dll"]
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+WORKDIR /app
+COPY --from=build /app/publish .
 
-# For now, just verify the build works
-FROM build AS final
-WORKDIR /src
+# Expose port
+EXPOSE 5000
+
+# Set environment variables
+ENV ASPNETCORE_URLS=http://+:5000
+ENV ASPNETCORE_ENVIRONMENT=Production
+
+# Run the application
+ENTRYPOINT ["dotnet", "NoraPA.API.dll"]
