@@ -1,6 +1,9 @@
 # 🤖 Nora Personal Assistant
 
-# NoraAssistant
+[![GitHub](https://img.shields.io/badge/GitHub-NoraPersonalAssistant-181717?logo=github)](https://github.com/konradwalsh/NoraPersonalAssistant)
+[![.NET](https://img.shields.io/badge/.NET-9.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **Your Personal AI-Powered Digital Assistant.**
 
@@ -21,26 +24,26 @@ NoraAssistant is a local-first, privacy-focused application designed to help you
 
 ---
 
-## ✨ Current Features (v0.1 - Alpha)
+## ✨ Current Features (v0.2 - Alpha)
 
 ### ✅ Working Now
 
-- 📧 **Message Management**: View, filter, sort, and search messages
-- 🤖 **AI Analysis**: Analyze messages with OpenAI GPT-4
+- 📧 **Gmail Integration**: OAuth2 authentication, automatic sync, attachment downloads
+- 📅 **Google Calendar**: Multi-calendar sync with selective calendar support
+- 🤖 **AI Analysis**: Analyze messages with OpenAI GPT-4/GPT-4o (configurable)
+- 📊 **Analytics Dashboard**: Real-time AI usage stats and throughput visualization
 - 🔔 **Toast Notifications**: Real-time feedback for all actions
-- 🎨 **Modern UI**: Dark mode with shadcn/ui components
+- 🎨 **Modern UI**: Premium dark mode with glassmorphism and Framer Motion animations
 - 🔍 **Smart Filtering**: Unprocessed, processed, follow-up views
-- 🏷️ **Message Tagging**: Mark messages by importance
+- 📁 **Document Vault**: Attachment management with search and category filters
 - ⚡ **Fast Performance**: Optimized with TanStack Query
+- ⌨️ **Command Menu**: Cmd+K quick navigation
 
 ### 🚧 In Development
 
-- 📥 Gmail integration
-- 📊 Advanced AI extraction (8-section schema)
 - ✅ Auto-task creation from obligations
-- 🎬 Framer Motion animations
-- ⌨️ Keyboard shortcuts
 - 📱 Mobile responsiveness
+- 🔌 Plugin system & Home Assistant integration
 
 ---
 
@@ -56,13 +59,15 @@ NoraAssistant is a local-first, privacy-focused application designed to help you
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/NoraAssistant.git
-cd NoraAssistant
+git clone https://github.com/konradwalsh/NoraPersonalAssistant.git
+cd NoraPersonalAssistant
 
 # Setup backend
 cd NoraPA.API
 dotnet restore
-# Configure appsettings.json with your OpenAI key and DB connection
+# Copy example config and add your API keys
+cp appsettings.Example.json appsettings.json
+# Edit appsettings.json with your OpenAI key and Google OAuth credentials
 dotnet ef database update
 dotnet run  # Starts on http://localhost:7001
 
