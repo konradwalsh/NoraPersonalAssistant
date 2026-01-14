@@ -1,0 +1,52 @@
+# Build outputs
+bin/
+obj/
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Node
+node_modules/
+dist/
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Credentials (CRITICAL - never commit)
+credentials.json
+token.json
+*.pem
+*.key
+
+# Temp files
+*.tmp
+*.temp
+
+# Tool configs (may contain secrets)
+.kilocode/
+.agent/
+
+# Secrets folder
+secrets/
+
+# App settings (may contain API keys)
+appsettings.json
+appsettings.*.json
+!appsettings.Example.json

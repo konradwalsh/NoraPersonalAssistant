@@ -1,0 +1,12 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  NoraPA.Core -> C:\Users\konra\source\repos\NoraAssistant\NoraPA.Core\bin\Debug\net9.0\NoraPA.Core.dll
+C:\Users\konra\source\repos\NoraAssistant\NoraPA.API\Program.cs(70,21): error CS0136: A local or parameter named 'dbProvider' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter [C:\Users\konra\source\repos\NoraAssistant\NoraPA.API\NoraPA.API.csproj]
+
+Build FAILED.
+
+C:\Users\konra\source\repos\NoraAssistant\NoraPA.API\Program.cs(70,21): error CS0136: A local or parameter named 'dbProvider' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter [C:\Users\konra\source\repos\NoraAssistant\NoraPA.API\NoraPA.API.csproj]
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:01.67

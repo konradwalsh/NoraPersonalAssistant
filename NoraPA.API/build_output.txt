@@ -1,0 +1,20 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+C:\Users\konra\source\repos\NoraAssistant\NoraPA.Core\CalendarEvent.cs(16,19): warning CS8618: Non-nullable property 'Title' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable. [C:\Users\konra\source\repos\NoraAssistant\NoraPA.Core\NoraPA.Core.csproj]
+C:\Users\konra\source\repos\NoraAssistant\NoraPA.Core\Contact.cs(16,19): warning CS8618: Non-nullable property 'Name' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable. [C:\Users\konra\source\repos\NoraAssistant\NoraPA.Core\NoraPA.Core.csproj]
+  NoraPA.Core -> C:\Users\konra\source\repos\NoraAssistant\NoraPA.Core\bin\Debug\net9.0\NoraPA.Core.dll
+C:\Users\konra\source\repos\NoraAssistant\NoraPA.API\Services\GoogleAuthService.cs(46,9): warning CS0618: 'GoogleAuthorizationCodeRequestUrl.ApprovalPrompt' is obsolete: 'Unused for Google OpenID; use the 'Prompt' property instead.' [C:\Users\konra\source\repos\NoraAssistant\NoraPA.API\NoraPA.API.csproj]
+C:\Users\konra\source\repos\NoraAssistant\NoraPA.API\Services\GmailSyncService.cs(180,41): warning CS8602: Dereference of a possibly null reference. [C:\Users\konra\source\repos\NoraAssistant\NoraPA.API\NoraPA.API.csproj]
+C:\Users\konra\source\repos\NoraAssistant\NoraPA.API\AiAnalysisService.cs(192,26): error CS0136: A local or parameter named 'userMsg' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter [C:\Users\konra\source\repos\NoraAssistant\NoraPA.API\NoraPA.API.csproj]
+
+Build FAILED.
+
+C:\Users\konra\source\repos\NoraAssistant\NoraPA.Core\CalendarEvent.cs(16,19): warning CS8618: Non-nullable property 'Title' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable. [C:\Users\konra\source\repos\NoraAssistant\NoraPA.Core\NoraPA.Core.csproj]
+C:\Users\konra\source\repos\NoraAssistant\NoraPA.Core\Contact.cs(16,19): warning CS8618: Non-nullable property 'Name' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable. [C:\Users\konra\source\repos\NoraAssistant\NoraPA.Core\NoraPA.Core.csproj]
+C:\Users\konra\source\repos\NoraAssistant\NoraPA.API\Services\GoogleAuthService.cs(46,9): warning CS0618: 'GoogleAuthorizationCodeRequestUrl.ApprovalPrompt' is obsolete: 'Unused for Google OpenID; use the 'Prompt' property instead.' [C:\Users\konra\source\repos\NoraAssistant\NoraPA.API\NoraPA.API.csproj]
+C:\Users\konra\source\repos\NoraAssistant\NoraPA.API\Services\GmailSyncService.cs(180,41): warning CS8602: Dereference of a possibly null reference. [C:\Users\konra\source\repos\NoraAssistant\NoraPA.API\NoraPA.API.csproj]
+C:\Users\konra\source\repos\NoraAssistant\NoraPA.API\AiAnalysisService.cs(192,26): error CS0136: A local or parameter named 'userMsg' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter [C:\Users\konra\source\repos\NoraAssistant\NoraPA.API\NoraPA.API.csproj]
+    4 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:03.19
