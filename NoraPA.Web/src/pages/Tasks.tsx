@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import {
   CheckSquare,
   Plus,
@@ -9,7 +10,9 @@ import {
   AlertCircle,
   MoreVertical,
   CheckCircle2,
-  Circle
+  Circle,
+  ExternalLink,
+  Sparkles
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -153,14 +156,22 @@ export default function Tasks() {
                         </div>
                       )}
                     </button>
-                    <div className="space-y-1.5">
-                      <p className={cn(
-                        "text-[15px] font-black tracking-tight transition-all",
-                        task.status === 'completed' ? "text-white/20 line-through" : "text-white/90"
-                      )}>
-                        {task.title}
-                      </p>
-                      <div className="flex items-center gap-4">
+                    <div className="space-y-1.5 flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className={cn(
+                          "text-[15px] font-black tracking-tight transition-all truncate",
+                          task.status === 'completed' ? "text-white/20 line-through" : "text-white/90"
+                        )}>
+                          {task.title}
+                        </p>
+                        {task.obligationId && (
+                          <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-[0.15em] px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shrink-0">
+                            <Sparkles className="h-2.5 w-2.5" />
+                            Auto
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-4 flex-wrap">
                         {task.dueDate && (
                           <div className="flex items-center gap-2 text-[10px] font-bold text-white/20 uppercase tracking-widest">
                             <Clock className="h-3 w-3" />
@@ -170,14 +181,28 @@ export default function Tasks() {
                         {task.priority !== undefined && (
                           <div className={cn(
                             "text-[8px] font-black uppercase tracking-[0.2em] px-2.5 py-1 rounded-lg border",
-                            task.priority >= 3 ? "bg-rose-500/10 text-rose-500 border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.1)]" :
+                            task.priority === 1 ? "bg-rose-500/10 text-rose-500 border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.1)]" :
                               task.priority === 2 ? "bg-amber-500/10 text-amber-500 border-amber-500/20" :
                                 "bg-blue-500/10 text-blue-500 border-blue-500/20"
                           )}>
-                            {task.priority >= 3 ? 'Critical' : task.priority === 2 ? 'Priority' : 'Normal'}
+                            {task.priority === 1 ? 'Critical' : task.priority === 2 ? 'High' : task.priority === 3 ? 'Medium' : 'Low'}
                           </div>
                         )}
+                        {task.contextLink && (
+                          <Link
+                            to={task.contextLink}
+                            className="flex items-center gap-1.5 text-[10px] font-bold text-indigo-400/60 hover:text-indigo-400 transition-colors"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            View Source
+                          </Link>
+                        )}
                       </div>
+                      {task.description && (
+                        <p className="text-[11px] text-white/30 line-clamp-1 mt-1">
+                          {task.description.replace(/\*\*/g, '').replace(/[📧👤⚠️📅]/g, '').split('\n')[0]}
+                        </p>
+                      )}
                     </div>
                   </div>
 

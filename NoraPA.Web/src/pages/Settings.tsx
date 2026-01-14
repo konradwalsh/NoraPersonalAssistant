@@ -1239,6 +1239,45 @@ export default function Settings() {
         <LogViewer />
       </div>
 
+      {/* Auto-Task Creation Toggle */}
+      <div className="pt-6 border-t border-white/5 space-y-4">
+        <SectionHeader title="Automation Pipeline" description="Control automatic task creation from AI analysis." />
+
+        <div className="p-5 rounded-3xl bg-white/5 border border-white/5 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+              <Zap className="h-6 w-6" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-white">Auto-Task Creation</h4>
+              <p className="text-xs text-white/40 max-w-[300px]">
+                Automatically create tasks from obligations detected during AI email analysis.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={async () => {
+              try {
+                const currentValue = await fetch(`${API_BASE}/settings/AutoTaskCreation`).then(r => r.json()).catch(() => ({ value: 'true' }));
+                const newValue = currentValue.value === 'true' ? 'false' : 'true';
+                await fetch(`${API_BASE}/settings/AutoTaskCreation`, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ value: newValue })
+                });
+                // Visual feedback - could add state here
+                alert(`Auto-Task Creation ${newValue === 'true' ? 'enabled' : 'disabled'}`);
+              } catch (err) {
+                console.error('Failed to toggle auto-task creation:', err);
+              }
+            }}
+            className="px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors text-xs font-bold"
+          >
+            Toggle
+          </button>
+        </div>
+      </div>
+
       <div className="space-y-4 pt-6 border-t border-white/5">
         <SectionHeader title="Data Management" description="Protect your intelligence data." />
 

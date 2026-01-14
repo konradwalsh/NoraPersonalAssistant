@@ -667,6 +667,31 @@ Body:
                     }
                 }
 
+                // ============ AUTO-TASK CREATION PIPELINE ============
+                // Check if auto-task creation is enabled
+                var autoTaskSetting = await _db.AppSettings.FindAsync("AutoTaskCreation");
+                bool autoTaskEnabled = autoTaskSetting?.Value?.ToLower() != "false"; // Default to enabled
+                
+                if (autoTaskEnabled && extractedObligations.Any())
+                {
+                    _logger.LogInformation("Auto-Task Pipeline: Creating tasks from {Count} obligations for message {MessageId}", 
+                        extractedObligations.Count, messageId);
+                    
+                    // Save obligations first to get their IDs
+                    await _db.SaveChangesAsync();
+                    
+                    var createdTasks = await CreateTasksFromObligationsAsync(
+                        extractedObligations, 
+                        extractedDeadlines, 
+                        message);
+                    
+                    if (createdTasks.Any())
+                    {
+                        _db.Tasks.AddRange(createdTasks);
+                        _logger.LogInformation("Auto-Task Pipeline: Created {Count} tasks from obligations", createdTasks.Count);
+                    }
+                }
+
                 // Update message metadata
                 try {
                     if (result.Summary != null)
@@ -921,6 +946,124 @@ Body:
             _logger.LogError(ex, "Error extracting obligations from JSON");
         }
         return new List<Obligation>();
+    }
+
+    /// <summary>
+    /// Auto-Task Creation Pipeline: Creates tasks from obligations with intelligent deadline matching.
+    /// Maps priority levels, links back to source message, and attempts to find related deadlines.
+    /// </summary>
+    private async System.Threading.Tasks.Task<List<NoraPA.Core.Task>> CreateTasksFromObligationsAsync(
+        List<Obligation> obligations, 
+        List<Deadline> deadlines, 
+        Message sourceMessage)
+    {
+        var tasks = new List<NoraPA.Core.Task>();
+        
+        foreach (var obligation in obligations)
+        {
+            // Skip if this obligation doesn't require a task (low confidence or already has a task)
+            if (obligation.ConfidenceScore.HasValue && obligation.ConfidenceScore < 0.5m)
+            {
+                _logger.LogDebug("Skipping low-confidence obligation: {Action} (confidence: {Confidence})", 
+                    obligation.Action, obligation.ConfidenceScore);
+                continue;
+            }
+            
+            // Check if a task already exists for this obligation
+            if (obligation.Id > 0)
+            {
+                var existingTask = await _db.Tasks.AnyAsync(t => t.ObligationId == obligation.Id);
+                if (existingTask) continue;
+            }
+            
+            // Find the best matching deadline for this obligation
+            DateTime? dueDate = null;
+            if (deadlines.Any())
+            {
+                // Priority 1: Look for deadlines with matching keywords
+                var actionWords = obligation.Action.ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                var matchingDeadline = deadlines.FirstOrDefault(d => 
+                    d.Description != null && actionWords.Any(w => 
+                        d.Description.ToLower().Contains(w) && w.Length > 3));
+                
+                if (matchingDeadline != null && matchingDeadline.DeadlineDate.HasValue)
+                {
+                    dueDate = matchingDeadline.DeadlineDate;
+                }
+                else
+                {
+                    // Priority 2: Use the earliest absolute deadline if obligation is high priority
+                    if (obligation.Priority <= 2 || obligation.Mandatory)
+                    {
+                        var earliestDeadline = deadlines
+                            .Where(d => d.DeadlineDate.HasValue)
+                            .OrderBy(d => d.DeadlineDate)
+                            .FirstOrDefault();
+                        dueDate = earliestDeadline?.DeadlineDate;
+                    }
+                }
+            }
+            
+            // Build task description with context
+            var descriptionParts = new List<string>();
+            
+            if (!string.IsNullOrEmpty(obligation.Consequence))
+                descriptionParts.Add($"⚠️ **Risk if ignored:** {obligation.Consequence}");
+            
+            if (!string.IsNullOrEmpty(obligation.TriggerValue))
+                descriptionParts.Add($"📅 **Trigger:** {obligation.TriggerValue}");
+            
+            descriptionParts.Add($"📧 **From email:** {sourceMessage.Subject}");
+            descriptionParts.Add($"👤 **Sender:** {sourceMessage.FromName ?? sourceMessage.FromAddress}");
+            
+            var task = new NoraPA.Core.Task
+            {
+                ObligationId = obligation.Id > 0 ? obligation.Id : null,
+                Title = TruncateWithEllipsis(obligation.Action, 200),
+                Description = string.Join("\n", descriptionParts),
+                DueDate = dueDate,
+                Priority = MapObligationPriorityToTaskPriority(obligation.Priority, obligation.Mandatory),
+                Status = "pending",
+                ContextLink = $"/inbox?messageId={sourceMessage.Id}",
+                CreatedAt = DateTime.UtcNow
+            };
+            
+            tasks.Add(task);
+            _logger.LogInformation("Auto-created task: '{Title}' (Priority: {Priority}, Due: {Due})", 
+                task.Title, task.Priority, task.DueDate?.ToString("yyyy-MM-dd") ?? "None");
+        }
+        
+        return tasks;
+    }
+    
+    /// <summary>
+    /// Maps obligation priority (1-5) to task priority (1-4) with mandatory flag boosting.
+    /// </summary>
+    private int MapObligationPriorityToTaskPriority(int? obligationPriority, bool isMandatory)
+    {
+        // Task priority: 1 = Critical, 2 = High, 3 = Medium, 4 = Low
+        int basePriority = obligationPriority switch
+        {
+            1 => 1, // high -> Critical
+            2 => 2, // medium-high -> High
+            3 => 3, // medium -> Medium
+            4 => 4, // medium-low -> Low
+            5 => 4, // low -> Low
+            _ => 3  // default to Medium
+        };
+        
+        // Boost priority if mandatory
+        if (isMandatory && basePriority > 1)
+            basePriority--;
+        
+        return basePriority;
+    }
+    
+    private string TruncateWithEllipsis(string text, int maxLength)
+    {
+        if (string.IsNullOrEmpty(text) || text.Length <= maxLength)
+            return text;
+        return text.Substring(0, maxLength - 3) + "...";
     }
 
     public List<Deadline> ExtractDeadlines(long messageId, string? deadlinesJson)
